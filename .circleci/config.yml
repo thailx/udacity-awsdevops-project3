@@ -32,7 +32,7 @@ commands:
           when: on_fail
           command: |
             echo "Reverting Database  ########### "
-            SUCCESS=$(curl --insecure https://kvdb.io/57EBC2T8HBDwBFizoQ41qv/migration_<<parameters.workflow_id>>)
+            SUCCESS=$(curl --insecure https://kvdb.io/BaNERV9WMY3r1jMGgJoYCY/migration_<<parameters.workflow_id>>)
             if (( $SUCCESS == 1 ));
             then
               cd ~/project/backend
@@ -175,7 +175,7 @@ jobs:
           command: |
             BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --output text)
             echo Backend IP: $BACKEND_IP
-            curl https://kvdb.io/57EBC2T8HBDwBFizoQ41qv/${CIRCLE_WORKFLOW_ID:0:7} -d $BACKEND_IP
+            curl https://kvdb.io/BaNERV9WMY3r1jMGgJoYCY/${CIRCLE_WORKFLOW_ID:0:7} -d $BACKEND_IP
       - run: yum -y install tar gzip
       - persist_to_workspace:
           root: ~/
@@ -190,7 +190,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["9f:d3:2e:da:c0:2e:31:bb:b2:a3:4a:d0:b8:ea:df:18"]
+          fingerprints: ["08:ba:54:4e:a3:e9:1f:91:cf:34:4f:bb:e2:de:a5:c1"]
       - attach_workspace:
           at: ~/
       - run:
@@ -243,10 +243,10 @@ jobs:
             cd backend
             if grep -q "has been executed successfully." migrations_dump.txt
             then
-              SUCCESS=$(curl https://kvdb.io/57EBC2T8HBDwBFizoQ41qv/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1')
+              SUCCESS=$(curl https://kvdb.io/BaNERV9WMY3r1jMGgJoYCY/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1')
               echo "MIGRATION WAS SUCCESSFUL"
             else
-              SUCCESS=$(curl https://kvdb.io/57EBC2T8HBDwBFizoQ41qv/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '0')
+              SUCCESS=$(curl https://kvdb.io/BaNERV9WMY3r1jMGgJoYCY/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '0')
               echo "MIGRATION FAILED"
             fi
       - destroy-environment:
@@ -275,7 +275,7 @@ jobs:
       - run:
           name: Get backend url and Deploy Frontend Object
           command: |
-            export BACKEND_IP=$(curl --insecure https://kvdb.io/57EBC2T8HBDwBFizoQ41qv/${CIRCLE_WORKFLOW_ID:0:7})
+            export BACKEND_IP=$(curl --insecure https://kvdb.io/BaNERV9WMY3r1jMGgJoYCY/${CIRCLE_WORKFLOW_ID:0:7})
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
@@ -306,7 +306,7 @@ jobs:
       - checkout
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["df:dd:8e:df:14:00:4e:ee:ac:1a:2b:4e:57:e0:32:fa"]
+          fingerprints: ["08:ba:54:4e:a3:e9:1f:91:cf:34:4f:bb:e2:de:a5:c1"]
       # attach workspace
       - attach_workspace:
           at: ~/
@@ -410,7 +410,7 @@ jobs:
             echo $OldWorkflowID >> ~/OldWorkflowID.txt
             cat ~/OldWorkflowID.txt
             
-            curl https://kvdb.io/57EBC2T8HBDwBFizoQ41qv/${CIRCLE_WORKFLOW_ID:0:7} -d $OldWorkflowID
+            curl https://kvdb.io/BaNERV9WMY3r1jMGgJoYCY/${CIRCLE_WORKFLOW_ID:0:7} -d $OldWorkflowID
 
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
@@ -438,7 +438,7 @@ jobs:
           name: Get old stack workflow id
           command: |
             # Fetch the Old workflow ID
-            OldWorkflowID=$(curl --insecure https://kvdb.io/57EBC2T8HBDwBFizoQ41qv/${CIRCLE_WORKFLOW_ID:0:7})
+            OldWorkflowID=$(curl --insecure https://kvdb.io/BaNERV9WMY3r1jMGgJoYCY/${CIRCLE_WORKFLOW_ID:0:7})
             echo OldWorkflowID: $OldWorkflowID
             echo Current Workflow ID: ${CIRCLE_WORKFLOW_ID:0:7}
             # Fetch the stack names
@@ -448,7 +448,7 @@ jobs:
       - run:
           name: Remove old stacks and files
           command: |
-            OldWorkflowID=$(curl --insecure https://kvdb.io/57EBC2T8HBDwBFizoQ41qv/${CIRCLE_WORKFLOW_ID:0:7})
+            OldWorkflowID=$(curl --insecure https://kvdb.io/BaNERV9WMY3r1jMGgJoYCY/${CIRCLE_WORKFLOW_ID:0:7})
             Stacks=$(cat ~/stacks.txt)
             echo OldWorkflowID: $OldWorkflowID
             echo Stack names: ${Stacks[@]}
@@ -490,15 +490,15 @@ workflows:
               only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
-      - deploy-frontend:
-          requires: [run-migrations]
-      - deploy-backend:
-          requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
-      - cloudfront-update:
-          requires: [smoke-test]
-      - cleanup:
-          requires: [cloudfront-update]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      # - deploy-frontend:
+      #     requires: [run-migrations]
+      # - deploy-backend:
+      #     requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
+      # - cloudfront-update:
+      #     requires: [smoke-test]
+      # - cleanup:
+      #     requires: [cloudfront-update]
